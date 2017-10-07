@@ -1,0 +1,101 @@
+create JWT token api using inbuilt function:
+url:http://127.0.0.1:8000/api/jwt/
+method:Post
+bodydata(as input): {
+    "username": "****",
+    "password": "***"
+    }
+output:{
+    "token": "eyJ0eXAiOUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbaSIsImV4cCI6MTUwNjQyNTM4N30.hxrN38iIgnkb64gv_MZhGPNitXJF0IDE"
+}
+
+create new user Api:
+url:http://127.0.0.1:8000/api/createusers/
+method: post
+bodydata(as input) = {
+	"username":"****",
+	"password":"***",
+	"first_name":"****",
+	"last_name":"****",
+	"phone_number":"****",
+	"date_of_birth":"2006-10-25 06:00"
+}
+Output:{
+    "user": 2,
+    "created_date": "2017-09-27T05:41:54.712617",
+    "phone_number": "1111111111",
+    "date_of_birth": "2006-10-25T06:00:00Z",
+    "gender": null,
+    "agree": false,
+    "terms_conditions": false
+}
+
+custom login, return custom jwt  user Api:
+method: post
+url:http://127.0.0.1:8000/api/login/
+bodydata(as input) ={
+	"username":"****",
+	"password":"***"
+}
+output:{
+    "token": "eyJ0eXAiOUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbaSIsImV4cCI6MTUwNjQyNTM4N30.hxrN38iIgnkb64gv_MZhGPNitXJF0IDE"
+}
+
+custome jwt creation using request object Api:
+method: post
+url:http://127.0.0.1:8000/api/customjwt/
+bodydata(as input) ={
+	"username":"****",
+	"password":"***"
+}
+output:{
+    "token": "eyJ0eXAiOUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbaSIsImV4cCI6MTUwNjQyNTM4N30.hxrN38iIgnkb64gv_MZhGPNitXJF0IDE"
+}
+
+class based API for creating new users
+method: post
+url:http://127.0.0.1:8000/api/createuser/
+bodydata(as input) = {
+	"username":"****",
+	"password":"***",
+	"first_name":"****",
+	"last_name":"****",
+	"phone_number":"****",
+	"date_of_birth":"2006-10-25 06:00"
+}
+Output:{
+    "user": 2,
+    "created_date": "2017-09-27T05:41:54.712617",
+    "phone_number": "1111111111",
+    "date_of_birth": "2006-10-25T06:00:00Z",
+    "gender": null,
+    "agree": false,
+    "terms_conditions": false
+}
+
+class based API for returning the JWT token once user is authorized
+method: post
+url:http://127.0.0.1:8000/api/loginuser/
+bodydata(as input) = {
+	"username":"****",
+	"password":"***",
+}
+output:{
+    "token": "eyJ0eXAiOUzI1NiJ9.eyJ1c2VyX2lkIjoxLCJlbWFpbaSIsImV4cCI6MTUwNjQyNTM4N30.hxrN38iIgnkb64gv_MZhGPNitXJF0IDE"
+}
+
+class based API to reset the password.
+method: post
+url:http://127.0.0.1:8000/api/resetpassword/
+bodydata(as input) = {
+	"new_password":"***",
+	"confirm_new_password":"***"
+}
+{
+    "sucess": "Password updated"
+}
+
+
+
+
+
