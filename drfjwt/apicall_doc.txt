@@ -33,7 +33,7 @@ Output:{
 custom login, return custom jwt  user Api:
 method: post
 url:http://127.0.0.1:8000/api/login/
-bodydata(as input) ={
+bodydata(as input) = {
 	"username":"****",
 	"password":"***"
 }
@@ -44,7 +44,7 @@ output:{
 custome jwt creation using request object Api:
 method: post
 url:http://127.0.0.1:8000/api/customjwt/
-bodydata(as input) ={
+bodydata(as input) = {
 	"username":"****",
 	"password":"***"
 }
@@ -91,11 +91,31 @@ bodydata(as input) = {
 	"new_password":"***",
 	"confirm_new_password":"***"
 }
-{
+output:{
     "sucess": "Password updated"
 }
 
+class based API , to reset the password
+method: post
+url:http://127.0.0.1:8000/api/resetpassword/
+bodydata(as input) = {
+	"new_password":"****",
+	"confirm_new_password":"***",
+}
+Authorization(as input in header) = {
+	"Authorization":"JWT <your token>",
+}
+
+output:{
+    "success": "password updated successfully"
+}
 
 
-
+#TODO:below url not implemented
+method:post
+url: http://127.0.0.1:8000/api/login/social/jwt/ or http://127.0.0.1:8000/api/login/social/jwt_user/
+bodydata (as input = {
+      "provider": "facebook",
+      "code": "****"
+ }
 

@@ -40,7 +40,8 @@ INSTALLED_APPS = (
     'django.contrib.staticfiles',
     'rest_framework',
     'authapi',
-    'social_django'
+    'social_django',
+    #'rest_social_auth'
 )
 
 MIDDLEWARE_CLASSES = (
@@ -52,6 +53,7 @@ MIDDLEWARE_CLASSES = (
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
     'django.middleware.security.SecurityMiddleware',
+    'social_django.middleware.SocialAuthExceptionMiddleware',
 )
 
 ROOT_URLCONF = 'drfjwt.urls'
@@ -85,11 +87,11 @@ WSGI_APPLICATION = 'drfjwt.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': "puc",
-        "USER": "root",
+        'NAME':"puc",
+        "USER":"root",
         "PASSWORD":"root",
         "HOST":"localhost",
-        "PORT" :"3306",
+        "PORT":"3306",
     }
 }
 
@@ -117,7 +119,7 @@ REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
         'rest_framework_jwt.authentication.JSONWebTokenAuthentication',
         'rest_framework.authentication.BasicAuthentication',
-        #'rest_framework.authentication.SessionAuthentication',
+        'rest_framework.authentication.SessionAuthentication',
         #'rest_framework.authentication.TokenAuthentication',
     )
 }
@@ -183,10 +185,22 @@ LOGGING = {
 
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.google.GoogleOAuth2',
+    'social_core.backends.facebook.FacebookOAuth2',
     'django.contrib.auth.backends.ModelBackend',
 )
 
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '****'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '****'
+# Below is the setup for social_django (session based)
 
-LOGIN_REDIRECT_URL = 'http://localhost/api/complete/google-oauth2/'
+SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '*********'
+SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '*********'
+
+SOCIAL_AUTH_FACEBOOK_KEY = '*********'
+SOCIAL_AUTH_FACEBOOK_SECRET = '*********'
+
+LOGIN_REDIRECT_URL = 'successlogin_fromsocial_site'
+
+
+# Below is the setup for rest_social_auth (JWT based)
+# REST_SOCIAL_OAUTH_REDIRECT_URI = "successlogin_fromsocial_site_jwt"
+# SOCIAL_AUTH_FACEBOOK_KEY = '1564089070280656'
+# SOCIAL_AUTH_FACEBOOK_SECRET = '4cf735c61aab004a38c73a6d0a40ce3b'

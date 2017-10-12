@@ -6,10 +6,12 @@
 </head>
 <body>
     {% load staticfiles %}
-    <h4>Login through the:</h4>
+    <h4>Login through:</h4>
+    <a >
+    <img src= "{% static 'powerupcloud.png' %}"width="400" height="100"></a><br>
     <a href="{% url 'social:begin' 'google-oauth2' %}">
     <img src= "{% static 'gmaillogo.png' %}" width="400" height="90"></a><br>
-    <a href="">
+    <a href="{% url 'social:begin' 'facebook' %}">
     <img src= "{% static 'facebooklogo.png' %}"width="400" height="100"></a>
 </body>
 </html>

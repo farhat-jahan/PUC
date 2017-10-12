@@ -1,4 +1,5 @@
-from django.shortcuts import redirect, render
+from django.shortcuts import redirect, render, render_to_response
+from rest_framework.authentication import BaseAuthentication, SessionAuthentication, BasicAuthentication
 from rest_framework.decorators import api_view
 from rest_framework.parsers import JSONParser
 from rest_framework.response import Response
@@ -26,7 +27,7 @@ logger = logging.getLogger('puc')
 def new_user(request):
     """ registered the users, if user is not already registered and returns registered user.
     :param request:
-    :return: registered user
+    :return:registered user
     """
     parser = JSONParser().parse(request)
     try:
@@ -49,7 +50,7 @@ def new_user(request):
 def login(request):
     """authorized the user and returns Json web token.
     :param request:
-    :return: JWT
+    :return:JWT
     """
     parser = JSONParser().parse(request)
     if parser['username'] and parser['password']:
@@ -65,9 +66,9 @@ def login(request):
 @csrf_exempt
 @api_view(['POST'])
 def create_jwt(request):
-    """ takes request param and return Json web token.
+    """ takes request param and returns Json web token.
     :param request:
-    :return:
+    :return:JWT
     """
     parser = JSONParser().parse(request)
     jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
@@ -90,7 +91,7 @@ def create_jwt(request):
 class CreateUser(APIView):
     """ registered the user, if user is not already registered and returns registered user.
     :param request:
-    :return: registered user
+    :return:registered user
     """
     def get(self, request):
         raise MethodNotAllowed('GET')
@@ -118,9 +119,9 @@ class CreateUser(APIView):
                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
 
 class LoginUser(APIView):
-    """authorized the user and returns JWT token.
+    """authorized the user and returns Json web token.
     :param request: request
-    :return: JWT
+    :return:JWT
     """
     def get(self, request, format=None):
         return MethodNotAllowed('GET')
@@ -140,9 +141,9 @@ class LoginUser(APIView):
 
 
 class CreateJWT(APIView):
-    """ takes request param and return Json web token.
+    """ takes request param and returns Json web token.
     :param request:
-    :return:
+    :return:JWT
     """
     def get(self, request, format=None):
         return MethodNotAllowed('GET')
@@ -175,7 +176,7 @@ class LogoutUser(APIView):
     def get(self, request, format=None):
         return MethodNotAllowed('GET')
 
-    '''
+
     def post(self, request, format=None):
         token = (request.META['HTTP_AUTHORIZATION']).split()[1]
         if token:
@@ -183,19 +184,19 @@ class LogoutUser(APIView):
                 payload = jwt.decode(token, settings.SECRET_KEY)
                 user = UserProfile.objects.get(user__username=payload['username'], user_id=payload['user_id'])
             except:
-                return Response(data={'error': 'unautorized user'}, status=status.HTTP_401_UNAUTHORIZED)
+                return Response(data={'error': 'invalid authentication'}, status=status.HTTP_401_UNAUTHORIZED)
+            return Response({'message': 'Succesfully Loged out '})
             #fixme:this line- return redirect('login')-need to fix
-            return redirect('login')
+            #return redirect('login')
         return Response({"Error":"Token is required"}, status=status.HTTP_400_BAD_REQUEST)
-    '''
 
-    def post(self, request, format=None):
-        return Response({'message':'Logout functionality need to implement UI/client side'})
+    # def post(self, request, format=None):
+    #     return Response({'message':'Logout functionality need to implement UI/client side'})
 
 def login_token(user):
     """ takes user and generates Json web token.
     :param user: userdata
-    :return: JWT
+    :return:JWT
     """
     api_settings.JWT_EXPIRATION_DELTA = datetime.timedelta(seconds=30000)
     jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
@@ -203,7 +204,6 @@ def login_token(user):
     payload = jwt_payload_handler(user)
     token = jwt_encode_handler(payload)
     return {'token': token}
-
 
 class ResetPassword(APIView):
     """ Takes JWT and other param and reset the password
@@ -251,10 +251,31 @@ class ResetPassword(APIView):
         else:
             return Response(data={'error':'token is required for this request'}, status=status.HTTP_400_BAD_REQUEST)
 
+def login_index(request):
+    return render(request,'login_index.html')
 
-def social_sites_login(request):
-    return render(request,'index.html')
+class SuccessLoginFromSocialSites(APIView):
 
-def google(request):
-    print("?????/...............////")
-    return Response(data={"sucess":"sucess"})
+    def post(self, request, format=None):
+        return MethodNotAllowed('POST')
+
+    def get(self, request, format=None):
+        """
+        Logged in the user from social sites and uses sessions authentication , ex: Google, Facebook and returns Json web token.
+        :param request:
+        :param format:
+        :return:JWT
+        """
+        try:
+            user = User.objects.get(username=request.user.username)
+        except Exception as e:
+            logger.error("JWT generation failed for the user:{0}, exception-{1}".format(request.user.username,
+                                                                                        status.HTTP_401_UNAUTHORIZED))
+            return Response(data={'error': 'invalid authentication key'}, status=status.HTTP_401_UNAUTHORIZED)
+        token = login_token(user)
+        logger.info("JWT is sent to registered user:{0}".format(request.user.username))
+        return Response(data=token, status=status.HTTP_200_OK)
+
+
+class successLoginFromsocialSiteJwt(APIView):
+    pass
