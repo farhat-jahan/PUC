@@ -12,6 +12,7 @@ https://docs.djangoproject.com/en/1.8/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
+from authapi.config import  *
 
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
@@ -25,8 +26,8 @@ SECRET_KEY = 'o-1ly-__)kp+a_0nmvh^hrb_8o_718rt*$ok3++*_6k9+w%2n9'
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
 
-#DEBUG = False
-#ALLOWED_HOSTS = ['*']
+# DEBUG = False
+# ALLOWED_HOSTS = ['*']
 
 #SECRET_KEY = 'PU3$5gtHYC'
 # Application definition
@@ -186,21 +187,7 @@ LOGGING = {
 AUTHENTICATION_BACKENDS = (
     'social_core.backends.google.GoogleOAuth2',
     'social_core.backends.facebook.FacebookOAuth2',
+    #'social.backends.twitter.TwitterOAuth',
     'django.contrib.auth.backends.ModelBackend',
 )
 
-# Below is the setup for social_django (session based)
-
-SOCIAL_AUTH_GOOGLE_OAUTH2_KEY = '*********'
-SOCIAL_AUTH_GOOGLE_OAUTH2_SECRET = '*********'
-
-SOCIAL_AUTH_FACEBOOK_KEY = '*********'
-SOCIAL_AUTH_FACEBOOK_SECRET = '*********'
-
-LOGIN_REDIRECT_URL = 'successlogin_fromsocial_site'
-
-
-# Below is the setup for rest_social_auth (JWT based)
-# REST_SOCIAL_OAUTH_REDIRECT_URI = "successlogin_fromsocial_site_jwt"
-# SOCIAL_AUTH_FACEBOOK_KEY = '1564089070280656'
-# SOCIAL_AUTH_FACEBOOK_SECRET = '4cf735c61aab004a38c73a6d0a40ce3b'

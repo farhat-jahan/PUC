@@ -6,4 +6,7 @@ db.sqlite3
 *.pyc
 *.py~
 log/*.log
+config.py
+
+
 

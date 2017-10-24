@@ -9,7 +9,7 @@ from rest_framework import status
 from rest_framework_jwt.utils import jwt_payload_handler
 from rest_framework_jwt.settings import api_settings
 from django.contrib.auth import authenticate as auth_authenticate
-from django.http import JsonResponse
+from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
@@ -254,18 +254,26 @@ class ResetPassword(APIView):
 def login_index(request):
     return render(request,'login_index.html')
 
+#from rest_framework.authentication import SessionAuthentication
+# class CsrfExemptSessionAuthentication(SessionAuthentication):
+#
+#     def enforce_csrf(self, request):
+#         return  # To not perform the csrf check previously happening
+
+
+#authentication_classes = (, BasicAuthentication)
 class SuccessLoginFromSocialSites(APIView):
+    """ Logged in the user from social sites and uses sessions authentication , ex: Google, Facebook and returns Json web token.
+    :param request:
+    :param format:
+    :return:JWT
+    """
 
     def post(self, request, format=None):
         return MethodNotAllowed('POST')
 
+    #authentication_classes = (BasicAuthentication,CsrfExemptSessionAuthentication)
     def get(self, request, format=None):
-        """
-        Logged in the user from social sites and uses sessions authentication , ex: Google, Facebook and returns Json web token.
-        :param request:
-        :param format:
-        :return:JWT
-        """
         try:
             user = User.objects.get(username=request.user.username)
         except Exception as e:

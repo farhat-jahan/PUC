@@ -28,3 +28,5 @@ class UserProfile(BaseModel):
 
     class Meta:
         db_table = "puc_userprofile"
+
+
