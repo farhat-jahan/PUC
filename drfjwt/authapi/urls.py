@@ -18,11 +18,17 @@ urlpatterns = [
     url(r'^createjwt/$', views.CreateJWT.as_view(), name='create_jwt'),
     url(r'^logoutuser/$', views.LogoutUser.as_view(), name='logout_user'),
     url(r'^resetpassword/$', views.ResetPassword.as_view(), name='reset_password'),
+    url(r'^forgotpasswordlink/$', views.ForgotPasswordlink.as_view(), name='forgot_password_link'),
+    #url(r'^resetpasswdthroughlink/(?P<email_in>[\w@.]+)/(?P<token>\w+)/$', views.ResetPasswdThroughLink.as_view(), name='reset_password_through_link'),
+    url(r'^resetpasswdthroughlink/', views.ResetPasswdThroughLink.as_view(), name='reset_password_through_link'),
+
 
     # Below is the setup for social_django (UI session based)
     url('^loginindex/', views.login_index, name='login_index'),
     url('^', include('social_django.urls', namespace='social')),
     url(r'^successloginsocialsites', views.SuccessLoginFromSocialSites.as_view(), name='successlogin_fromsocial_site'),
+
+
 
     # Below is the setup for rest_social_auth (JWT based), Api based
     # fixme:not implemented, if required do the implementation.

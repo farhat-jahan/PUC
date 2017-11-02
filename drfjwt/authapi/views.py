@@ -1,3 +1,4 @@
+from django.db import transaction
 from django.shortcuts import redirect, render, render_to_response
 from rest_framework.authentication import BaseAuthentication, SessionAuthentication, BasicAuthentication
 from rest_framework.decorators import api_view
@@ -13,6 +14,11 @@ from django.http import JsonResponse, HttpResponse
 from django.contrib.auth.models import User
 from django.views.decorators.csrf import csrf_exempt
 from django.core.exceptions import ObjectDoesNotExist
+from django.core.urlresolvers import reverse
+from django.core.mail import send_mail
+from django.contrib.auth.tokens import default_token_generator
+
+from authapi.puc_exceptions import PucValidationError
 from authapi.serializers import UserProfileSerializer
 from authapi.models import UserProfile
 from drfjwt import settings
@@ -88,8 +94,42 @@ def create_jwt(request):
 #################################################   CLASS BASED API   ################################################################
 #TODO:remove functions based Apis, once class based APIs are confirmed
 
+# class CreateUser(APIView):
+#     """ registered the user, if user is not already registered and returns registered user.
+#     :param request:
+#     :return:registered user
+#     """
+#     def get(self, request):
+#         raise MethodNotAllowed('GET')
+#
+#     def post(self, request, format=None):
+#         parser = JSONParser().parse(request)
+#         if parser['username']:
+#             try:
+#                 user = User.objects.get(username=parser['username'])
+#             except:
+#                 #valid_email = validate_email(parser['email'])
+#                 user = User.objects.create_user(username=parser['username'], password=parser['password'])
+#                 logger.info("New auth user:{0} is created".format(user.username))
+#                 user.save()
+#             #valid_email = validate_email(parser['email'])
+#
+#             user.first_name = parser['first_name']
+#             user.last_name = parser['last_name']
+#             user.save()
+#             serializer = UserProfileSerializer(data={'user': user.id, 'phone_number': parser['phone_number'],
+#                                                      'date_of_birth': parser['date_of_birth']})
+#             if serializer.is_valid():
+#                 serializer.save()
+#                 logger.info("New UserProfile is created with username:{0} and phone number:{1}".format(user.username, parser['phone_number']))
+#                 return Response(serializer.data, status=status.HTTP_201_CREATED)
+#             else:
+#                 logger.error("Failed to registered user, exception-{0}".format(serializer.errors))
+#                 return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
 class CreateUser(APIView):
     """ registered the user, if user is not already registered and returns registered user.
+    username, email, phone_number are unique
     :param request:
     :return:registered user
     """
@@ -98,25 +138,37 @@ class CreateUser(APIView):
 
     def post(self, request, format=None):
         parser = JSONParser().parse(request)
-        if parser['username']:
-            try:
-                user = User.objects.get(username=parser['username'])
-            except:
-                user = User.objects.create_user(username=parser['username'], password=parser['password'])
-                logger.info("New auth user:{0} is created".format(user.username))
+
+        with transaction.atomic():
+            if parser['username']:
+                try:
+                    user = User.objects.get(username=parser['username'])
+                except:
+                    user = User.objects.create_user(username=parser['username'], password=parser['password'],email=parser['email'])
+                    logger.info("New auth user:{0} is created".format(user.username))
+                    user.save()
+                user.first_name = parser['first_name']
+                user.last_name = parser['last_name']
                 user.save()
-            user.first_name = parser['first_name']
-            user.last_name = parser['last_name']
-            user.save()
-            serializer = UserProfileSerializer(data={'user': user.id, 'phone_number': parser['phone_number'],
-                                                     'date_of_birth': parser['date_of_birth']})
-            if serializer.is_valid():
-                serializer.save()
-                logger.info("New UserProfile is created with username:{0} and phone number:{1}".format(user.username, parser['phone_number']))
-                return Response(serializer.data, status=status.HTTP_201_CREATED)
-            else:
-                logger.error("Failed to registered user, exception-{0}".format(serializer.errors))
-                return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+                serializer = UserProfileSerializer(data={'user': user.id, 'date_of_birth': parser['date_of_birth'],
+                                                         'phone_number':parser['phone_number']})
+                if serializer.is_valid():
+                    serializer.save()
+                    logger.info("New UserProfile is created with username:{0} and phone number:{1}".format(user.username, parser['phone_number']))
+
+                    return Response(serializer.data, status=status.HTTP_201_CREATED)
+                else:
+                    logger.error("Failed to registered user, exception-{0}".format(serializer.errors))
+                    return Response(serializer.errors, status=status.HTTP_400_BAD_REQUEST)
+
+
+# def validate_phone(args):
+#     phone_number = args.strip()
+#     if len(phone_number)<10 or phone_number.isdigit()==False:
+#         raise PucValidationError(message="Phone number must be entered in the format: '9999999999'. Up to 15 digits allowed.",
+#                                  status=status.HTTP_400_BAD_REQUEST)
+#     return phone_number
+
 
 class LoginUser(APIView):
     """authorized the user and returns Json web token.
@@ -198,7 +250,7 @@ def login_token(user):
     :param user: userdata
     :return:JWT
     """
-    api_settings.JWT_EXPIRATION_DELTA = datetime.timedelta(seconds=30000)
+    api_settings.JWT_EXPIRATION_DELTA = datetime.timedelta(days=2)
     jwt_payload_handler = api_settings.JWT_PAYLOAD_HANDLER
     jwt_encode_handler = api_settings.JWT_ENCODE_HANDLER
     payload = jwt_payload_handler(user)
@@ -287,3 +339,83 @@ class SuccessLoginFromSocialSites(APIView):
 
 class successLoginFromsocialSiteJwt(APIView):
     pass
+
+class ForgotPasswordlink(APIView):
+    """ Takes Email and returns success message
+        :param:email
+        :return:success message
+        """
+
+    def get(self, request, format=None):
+        return MethodNotAllowed('GET')
+
+    def post(self, request, format=None):
+        # send_mail(
+        #     'Subject here',
+        #     'Here is the message.',
+        #     'from@example.com',
+        #     ['to@example.com'],
+        #     fail_silently=False,
+        # )
+        token = (request.META['HTTP_AUTHORIZATION']).split()[1]
+        parser = JSONParser().parse(request)
+        user_email = parser['email']
+        if token:
+            try:
+                payload = jwt.decode(token, settings.SECRET_KEY)
+            except Exception as e:
+                return Response(data={'error': 'error in decoding token'}, status=status.HTTP_400_BAD_REQUEST)
+                logging.error('JsonWebTokenAuthentication. No Json web token found.'.format(e))
+            try:
+                user = User.objects.get(username=payload['username'], email=payload['email'])
+            except ObjectDoesNotExist:
+                return Response(data={'error': 'invalid authentication key'}, status=status.HTTP_401_UNAUTHORIZED)
+            #random_token_forlink = "xxY67Ttgg56"
+            random_token_forlink = default_token_generator.make_token(user)
+            mail_content = " Please click on the URL %s to reset your password" #% (url)
+            print("final mail content with url???????????", mail_content)
+            try:
+                send_mail('Markett : Reset Password Link', mail_content, settings.EMAIL_HOST_USER, ["farhat.jahan@powerupcloud.com"])
+            except Exception as e:
+                logger.error("email sending failed for the email {}".format(user_email))
+            return Response(data={"message":"Mail has been sent successfully. Please check your inbox(or spam folder) and reset your password"},
+                            status=status.HTTP_200_OK)
+
+        else:
+            return Response(data={'error': 'token is required for this request'}, status=status.HTTP_400_BAD_REQUEST)
+
+class ResetPasswdThroughLink(APIView):
+    def post(self, request):
+        default_token_generator.check_token(request.user, request.token)
+        pass
+
+
+# def generate_otp(request):
+#     if request.method == 'POST':
+#         try:
+#             username = request.POST['username']
+#             user = User.objects.get(username=username)
+#             phone_number = ''
+#             user_profile_obj = UserProfile.objects.filter(user=user)
+#             if user_profile_obj:
+#                 phone_number = user_profile_obj[0].phone_number
+#             logger.info('OTP request received . username: {0}'.format(username))
+#             token = otp_handler.get_otp(user=user)
+#             message = message_template.get_template('SEND_OTP').format(token)
+#             send_job_to_queue(send_otp, {'phone_number': phone_number, 'message': message,
+#                                          'sms_client': settings.SMS_CLIENT})
+#             logger.info('OTP sent to mobile {0}'.format(phone_number))
+#             #             #Send email if email address exist
+#             if user.email:
+#                 sent_otp_email(data=token, receiver=user.email, subject='Forgot Password')
+#
+#             return HttpResponseRedirect('/aftersell/users/otp/validate?username=' + username)
+#
+#         except Exception as ex:
+#             logger.error('Invalid details, mobile {0}'.format(phone_number))
+#             return HttpResponseRedirect('/aftersell/users/otp/generate?details=invalid')
+#
+#     elif request.method == 'GET':
+#         return render(request, 'portal/get_otp.html')
+
+
